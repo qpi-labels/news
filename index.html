@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Newsroom</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+        nav {
+            background: #444;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: #fff;
+            margin: 0 15px;
+            text-decoration: none;
+        }
+        .main-news {
+            padding: 20px;
+            background: #f4f4f4;
+        }
+        .main-news h2 {
+            margin-top: 0;
+        }
+        .latest-news {
+            padding: 20px;
+        }
+        .news-item {
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+        }
+        footer {
+            background: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        .admin-login, .add-news {
+            padding: 20px;
+            background: #f4f4f4;
+            margin: 20px;
+            display: none;
+        }
+        .admin-login input, .add-news input, .add-news textarea {
+            display: block;
+            margin-bottom: 10px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .admin-login button, .add-news button {
+            padding: 10px 20px;
+            background: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Company Newsroom</h1>
+</header>
+
+<nav>
+    <a href="#">Home</a>
+    <a href="#">About Us</a>
+    <a href="#">Press Releases</a>
+    <a href="#">Contact</a>
+</nav>
+
+<section class="main-news">
+    <h2>Main News Headline</h2>
+    <p>This is the main news story. It is highlighted because it is the most important news of the moment.</p>
+</section>
+
+<section class="latest-news">
+    <h2>Latest News</h2>
+</section>
+
+<section class="admin-login">
+    <h2>Admin Login</h2>
+    <input type="password" id="admin-code" placeholder="Enter admin code">
+    <button onclick="checkAdminCode()">Login</button>
+</section>
+
+<section class="add-news">
+    <h2>Add News Article</h2>
+    <input type="text" id="news-title" placeholder="News Title">
+    <textarea id="news-content" rows="4" placeholder="News Content"></textarea>
+    <button onclick="addNews()">Add News</button>
+</section>
+
+<footer>
+    <p>&copy; 2024 Company Name. All rights reserved.</p>
+</footer>
+
+<script>
+    const GITHUB_USERNAME = 'qpi-labels;
+    const GITHUB_REPO = 'news';
+    const GITHUB_API_URL = 'https://api.github.com';
+    const GITHUB_TOKEN = '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';
+
+    function checkAdminCode() {
+        const adminCode = document.getElementById('admin-code').value;
+        if (adminCode === '0000') {
+            document.querySelector('.add-news').style.display = 'block';
+            document.querySelector('.admin-login').style.display = 'none';
+        } else {
+            alert('Incorrect admin code.');
+        }
+    }
+
+    async function addNews() {
+        const title = document.getElementById('news-title').value;
+        const content = document.getElementById('news-content').value;
+
+        if (title && content) {
+            const news = { title, content };
+            const response = await fetch(`${GITHUB_API_URL}/gists`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `token ${GITHUB_TOKEN}`,
+                },
+                body: JSON.stringify({
+                    description: title,
+                    public: true,
+                    files: {
+                        [`${title}.txt`]: {
+                            content: content,
+                        },
+                    },
+                }),
+            });
+
+            if (response.ok) {
+                // Clear input fields
+                document.getElementById('news-title').value = '';
+                document.getElementById('news-content').value = '';
+                loadNews();
+            } else {
+                alert('Failed to add news');
+            }
+        } else {
+            alert('Please enter both a title and content.');
+        }
+    }
+
+    async function loadNews() {
+        const response = await fetch(`${GITHUB_API_URL}/users/${GITHUB_USERNAME}/gists`);
+        const gists = await response.json();
+        const newsSection = document.querySelector('.latest-news');
+        newsSection.innerHTML = '<h2>Latest News</h2>'; // 기존 뉴스 목록 초기화
+
+        gists.forEach(gist => {
+            if (gist.description) {
+                const newsItem = document.createElement('div');
+                newsItem.classList.add('news-item');
+                newsItem.innerHTML = `<h3>${gist.description}</h3><p>${gist.files[Object.keys(gist.files)[0]].content}</p>`;
+                newsSection.appendChild(newsItem);
+            }
+        });
+    }
+
+    // Load news from GitHub Gists on page load
+    document.addEventListener('DOMContentLoaded', loadNews);
+
+    // Display admin login section on page load
+    document.querySelector('.admin-login').style.display = 'block';
+</script>
+
+</body>
+</html>
