@@ -16,17 +16,6 @@
             padding: 10px 0;
             text-align: center;
         }
-        nav {
-            background: #444;
-            color: #fff;
-            padding: 10px;
-            text-align: center;
-        }
-        nav a {
-            color: #fff;
-            margin: 0 15px;
-            text-decoration: none;
-        }
         .main-news {
             padding: 20px;
             background: #f4f4f4;
@@ -41,6 +30,17 @@
             border-bottom: 1px solid #ccc;
             margin-bottom: 10px;
             padding-bottom: 10px;
+            position: relative;
+        }
+        .news-item button {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            padding: 5px 10px;
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            cursor: pointer;
         }
         footer {
             background: #333;
@@ -55,6 +55,8 @@
             padding: 20px;
             background: #f4f4f4;
             margin: 20px;
+        }
+        .add-news {
             display: none;
         }
         .admin-login input, .add-news input, .add-news textarea {
@@ -78,13 +80,6 @@
 <header>
     <h1>Company Newsroom</h1>
 </header>
-
-<nav>
-    <a href="#">Home</a>
-    <a href="#">About Us</a>
-    <a href="#">Press Releases</a>
-    <a href="#">Contact</a>
-</nav>
 
 <section class="main-news">
     <h2>Main News Headline</h2>
@@ -113,8 +108,7 @@
 </footer>
 
 <script>
-    const GITHUB_USERNAME = 'qpi-labels;
-    const GITHUB_REPO = 'news';
+    const GITHUB_USERNAME = 'qpi-labels';
     const GITHUB_API_URL = 'https://api.github.com';
     const GITHUB_TOKEN = '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';
 
@@ -152,7 +146,6 @@
             });
 
             if (response.ok) {
-                // Clear input fields
                 document.getElementById('news-title').value = '';
                 document.getElementById('news-content').value = '';
                 loadNews();
@@ -164,27 +157,42 @@
         }
     }
 
+    async function deleteNews(gistId) {
+        const response = await fetch(`${GITHUB_API_URL}/gists/${gistId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `token ${GITHUB_TOKEN}`,
+            },
+        });
+
+        if (response.ok) {
+            loadNews();
+        } else {
+            alert('Failed to delete news');
+        }
+    }
+
     async function loadNews() {
         const response = await fetch(`${GITHUB_API_URL}/users/${GITHUB_USERNAME}/gists`);
         const gists = await response.json();
         const newsSection = document.querySelector('.latest-news');
-        newsSection.innerHTML = '<h2>Latest News</h2>'; // 기존 뉴스 목록 초기화
+        newsSection.innerHTML = '<h2>Latest News</h2>';
 
         gists.forEach(gist => {
             if (gist.description) {
                 const newsItem = document.createElement('div');
                 newsItem.classList.add('news-item');
-                newsItem.innerHTML = `<h3>${gist.description}</h3><p>${gist.files[Object.keys(gist.files)[0]].content}</p>`;
+                newsItem.innerHTML = `
+                    <h3>${gist.description}</h3>
+                    <p>${gist.files[Object.keys(gist.files)[0]].content}</p>
+                    <button onclick="deleteNews('${gist.id}')">Delete</button>
+                `;
                 newsSection.appendChild(newsItem);
             }
         });
     }
 
-    // Load news from GitHub Gists on page load
     document.addEventListener('DOMContentLoaded', loadNews);
-
-    // Display admin login section on page load
-    document.querySelector('.admin-login').style.display = 'block';
 </script>
 
 </body>
