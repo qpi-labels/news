@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Company Newsroom</title>
+    <title>쿼터파이</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -109,8 +109,7 @@
 
 <script>
     const GITHUB_USERNAME = 'qpi-labels'; // 여기에 GitHub 사용자 이름을 입력하세요
-    const GITHUB_API_URL = 'https://api.github.com';
-    const GITHUB_TOKEN = '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'; // 여기에 GitHub Personal Access Token을 입력하세요
+    const REPO_NAME = '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'; // 여기에 저장소 이름을 입력하세요
 
     function checkAdminCode() {
         const adminCode = document.getElementById('admin-code').value;
@@ -127,22 +126,16 @@
         const content = document.getElementById('news-content').value;
 
         if (title && content) {
-            const news = { title, content };
-            console.log('Adding news:', news);
-            const response = await fetch(`${GITHUB_API_URL}/gists`, {
+            const response = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/dispatches`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.github.everest-preview+json',
                     'Authorization': `token ${GITHUB_TOKEN}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    description: title,
-                    public: true,
-                    files: {
-                        [`${title}.txt`]: {
-                            content: content,
-                        },
-                    },
+                    event_type: 'create_gist',
+                    client_payload: { title, content }
                 }),
             });
 
@@ -160,11 +153,17 @@
     }
 
     async function deleteNews(gistId) {
-        const response = await fetch(`${GITHUB_API_URL}/gists/${gistId}`, {
-            method: 'DELETE',
+        const response = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/dispatches`, {
+            method: 'POST',
             headers: {
+                'Accept': 'application/vnd.github.everest-preview+json',
                 'Authorization': `token ${GITHUB_TOKEN}`,
+                'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                event_type: 'delete_gist',
+                client_payload: { gist_id: gistId }
+            }),
         });
 
         if (response.ok) {
@@ -176,7 +175,7 @@
     }
 
     async function loadNews() {
-        const response = await fetch(`${GITHUB_API_URL}/users/${GITHUB_USERNAME}/gists`);
+        const response = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/gists`);
         const gists = await response.json();
         const newsSection = document.querySelector('.latest-news');
         newsSection.innerHTML = '<h2>Latest News</h2>';
