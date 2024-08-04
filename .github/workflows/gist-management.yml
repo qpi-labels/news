@@ -1,0 +1,41 @@
+name: Gist Management
+
+on:
+  repository_dispatch:
+    types: [create_gist, delete_gist]
+
+jobs:
+  create_gist:
+    if: github.event.action == 'create_gist'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Create Gist
+      run: |
+        curl -X POST https://api.github.com/gists \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -d @- <<EOF
+        {
+          "description": "${{ github.event.client_payload.title }}",
+          "public": true,
+          "files": {
+            "${{ github.event.client_payload.title }}.txt": {
+              "content": "${{ github.event.client_payload.content }}"
+            }
+          }
+        }
+        EOF
+
+  delete_gist:
+    if: github.event.action == 'delete_gist'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Delete Gist
+      run: |
+        curl -X DELETE https://api.github.com/gists/${{ github.event.client_payload.gist_id }} \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}"
