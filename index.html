@@ -108,9 +108,9 @@
 </footer>
 
 <script>
-    const GITHUB_USERNAME = 'qpi-labels';
+    const GITHUB_USERNAME = 'qpi-labels'; // 여기에 GitHub 사용자 이름을 입력하세요
     const GITHUB_API_URL = 'https://api.github.com';
-    const GITHUB_TOKEN = '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';
+    const GITHUB_TOKEN = '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'; // 여기에 GitHub Personal Access Token을 입력하세요
 
     function checkAdminCode() {
         const adminCode = document.getElementById('admin-code').value;
@@ -128,6 +128,7 @@
 
         if (title && content) {
             const news = { title, content };
+            console.log('Adding news:', news);
             const response = await fetch(`${GITHUB_API_URL}/gists`, {
                 method: 'POST',
                 headers: {
@@ -150,6 +151,7 @@
                 document.getElementById('news-content').value = '';
                 loadNews();
             } else {
+                console.error('Failed to add news', await response.text());
                 alert('Failed to add news');
             }
         } else {
@@ -168,6 +170,7 @@
         if (response.ok) {
             loadNews();
         } else {
+            console.error('Failed to delete news', await response.text());
             alert('Failed to delete news');
         }
     }
